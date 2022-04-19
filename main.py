@@ -3,6 +3,7 @@ import json
 from fastapi import FastAPI, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydub import AudioSegment
+from transformers import pipeline
 import io 
 import requests
 
@@ -58,8 +59,11 @@ async def upload_and_transcribe(file: bytes=File(...)):
 
         if "<laugh> " in txt:
             txt = txt.replace("<laugh> ", "")
-       
-        sentiment = "Neutral"
-        returned_json = {"Transcript": txt, "Sentiment": sentiment}
+        
+        pipe=pipeline("sentiment-analysis",model="MARBERTv2-Finetuned-DM-1")
+        result=pipe(txt)
+        sentiment = result[0]["label"]
+        score = result[0]["score"]
+        returned_json = {"Transcript": txt, "Sentiment": sentiment,"Score":score}
 
         return returned_json
